@@ -151,21 +151,24 @@ are the parts that decide what every number above says.
 | `bench/` | The five tests, the percentile code, and their tests |
 | `docker-compose.yml` | Kafka in KRaft mode, Elasticsearch, and Kibana behind a profile |
 
-## Two mistakes worth recording
+## Two things the harness has to get right
 
-Both produced plausible numbers, which is what makes them worth writing down.
+Both are easy to get wrong, and both produce plausible numbers when you do, which is why
+they are stated here rather than left in the code.
 
-**Producing and consuming in sequence.** The first harness sent every event and then
-started reading, so the reported latency was how long records waited for the producer to
-finish. It claimed a p50 of 8.4 seconds for a pipeline that answers in milliseconds. The
-two must overlap, and the consumer must be assigned to its partitions before the first
-record is sent.
+**The producer and the consumer must overlap.** Sending the whole file and only then
+reading it measures how long records waited for the producer to finish, not how long the
+pipeline takes. For 20,000 events at 1,000 per second that is twenty seconds of queueing
+reported as latency. `run_pair()` starts the producer in a thread, and the consumer is
+subscribed and assigned to its partitions before the first record is sent, so no record
+ever waits for a consumer that has not joined yet.
 
-**A fresh consumer group with `auto.offset.reset=earliest`.** Each test uses a new group so
-it does not inherit another's offsets, but with `earliest` a new group replays the whole
-topic, including every event left by previous runs. Their timestamps were minutes old, so
-they arrived with minutes of apparent latency: p95 of 60 seconds, from a pipeline that was
-working correctly.
+**A fresh consumer group must start at the latest offset.** Each test uses a new group so
+it does not inherit another's offsets, but a new group reading from `earliest` replays the
+whole topic, including everything left by previous runs. Those records carry producer
+timestamps from minutes ago, so they arrive with minutes of apparent latency. The default
+is therefore `latest`; `earliest` is for an actual replay, where reprocessing history is
+the point.
 
 ## Limits
 
