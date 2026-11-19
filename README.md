@@ -169,10 +169,9 @@ working correctly.
 
 ## Credits and limits
 
-Built on the pipeline written with **Khaled Benmachiche**
-([original repository](https://github.com/khaledbenmachiche/real-time-log-analytics-pipeline)),
-which established the architecture. What is added here is the measurement: the envelope,
-the five tests, the loss accounting and the results above.
+Built with **Khaled Benmachiche**. An earlier version of the pipeline lives in
+[his repository](https://github.com/khaledbenmachiche/real-time-log-analytics-pipeline);
+this one adds the measurement layer, the envelope, the five tests and the loss accounting.
 
 The numbers are from one laptop with everything in Docker on one host, which bounds what
 they mean. Kafka, Elasticsearch, the producer and the consumer all contend for the same
