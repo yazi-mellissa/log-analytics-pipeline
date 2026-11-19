@@ -42,6 +42,31 @@ that wait, which is worth more than the extra work costs: p50 falls from 262 ms 
 Below the ceiling, latency is dominated by how long a document waits for company, not by
 how long the system takes to handle it.
 
+### The batch size has an optimum, and going below it is catastrophic
+
+20,000 events offered at 2,000 per second, varying only the Elasticsearch bulk size.
+
+| Bulk size | Indexed/s | p50 ms | p95 ms | Keeping up |
+|---|---|---|---|---|
+| 50 | 673.3 | 9,431.7 | 18,528.2 | no |
+| 100 | 1,168.1 | 4,074.4 | 6,817.5 | no |
+| 250 | 1,946.4 | 205.1 | 334.7 | yes |
+| **500** | **1,984.9** | **166.9** | **289.7** | **yes** |
+| 1,000 | 1,978.8 | 281.4 | 510.2 | yes |
+| 2,000 | 778.7 | 589.9 | 15,701.2 | no |
+
+Intuition says smaller batches give lower latency, because a document waits less for its
+batch to fill. The measurement says the opposite, and not by a little: **p50 at a batch of
+50 is 56 times worse than at 500**. Each bulk request carries a fixed cost, and below
+about 250 the consumer cannot drain the partition as fast as the producer fills it. From
+there latency is set by a backlog that only grows, and the batch-fill argument stops
+applying entirely.
+
+Above the optimum the curve turns up again more gently, as documents wait for a larger
+batch to fill. The run at 2,000 hit the harness's idle timeout and stopped early, so its
+throughput is a lower bound and its p95 includes the stall; what it establishes is that
+the pipeline stopped keeping up, not by how much.
+
 ### A slow consumer costs seconds, and loses nothing
 
 | | p50 | p95 | max | lost | duplicates |
