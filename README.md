@@ -167,11 +167,7 @@ topic, including every event left by previous runs. Their timestamps were minute
 they arrived with minutes of apparent latency: p95 of 60 seconds, from a pipeline that was
 working correctly.
 
-## Credits and limits
-
-Built with **Khaled Benmachiche**. An earlier version of the pipeline lives in
-[his repository](https://github.com/khaledbenmachiche/real-time-log-analytics-pipeline);
-this one adds the measurement layer, the envelope, the five tests and the loss accounting.
+## Limits
 
 The numbers are from one laptop with everything in Docker on one host, which bounds what
 they mean. Kafka, Elasticsearch, the producer and the consumer all contend for the same
